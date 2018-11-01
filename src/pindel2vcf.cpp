@@ -250,6 +250,7 @@ struct ParameterSettings {
    int compactOutput;
    bool showHelp;
    bool somatic;
+   bool outputStrandCounts;
    bool gatkCompatible;
 } g_par;
 
@@ -773,6 +774,14 @@ void createHeader(ofstream &outFile, const string& sourceProgram, const string& 
    }
    outFile << "##FORMAT=<ID=AD,Number=2,Type=Integer,Description=\"Allele depth, how many reads support this allele\">" << endl;
 
+   if (g_par.outputStrandCounts) {
+     outFile << "##FORMAT=<ID=SRF,Number=1,Type=Integer,Description=\"Number of reference observations on the forward strand\">" << endl;
+     outFile << "##FORMAT=<ID=SRR,Number=1,Type=Integer,Description=\"Number of reference observations on the reverse strand\">" << endl;
+     outFile << "##FORMAT=<ID=SAF,Number=1,Type=Integer,Description=\"Number of alternate observations on the forward strand\">" << endl;
+     outFile << "##FORMAT=<ID=SAR,Number=1,Type=Integer,Description=\"Number of alternate observations on the reverse strand\">" << endl;
+   }
+
+
    // headers of columns
    outFile << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
    if (samples.size()>0) {
@@ -1089,7 +1098,7 @@ public:
    //void setSupportingReads(const int supportingreads) { d_supportingreads = supportingreads; }
    void addGenotype(const int sampleID, const int readDepthPlus, const int readDepthMinus, const int totalRefSupport)
    {
-      Genotype gt(readDepthPlus,readDepthMinus, totalRefSupport);
+      Genotype gt(readDepthPlus, readDepthMinus, totalRefSupport);
       d_format[ sampleID ] = gt ;
    }
 
@@ -1284,7 +1293,7 @@ SVData::SVData(const int genotypeTotal) // default settings
    if (numberOfSamples<=0) {
       numberOfSamples=1;
    }
-   d_format.resize( numberOfSamples, Genotype(0,0,0) );
+   d_format.resize( numberOfSamples, Genotype(0, 0, 0) );
 };
 
 
@@ -1577,9 +1586,19 @@ ostream& operator<<(ostream& os, const SVData& svd)
 
 
    if (pindel024uOrLater && svd.getAlternative()!="<INS>") {
-      os << "\tGT:AD";
+     if (g_par.outputStrandCounts) {
+       os << "\tGT:AD:SAF:SAR:SRF:SRR";
+     }
+     else {
+       os << "\tGT:AD";
+     }
    } else {
-      os << "\tGT:AD";
+     if (g_par.outputStrandCounts) {
+       os << "\tGT:AD:SAF:SAR:SRF:SRR";
+     }
+     else {
+       os << "\tGT:AD";
+     }
    }
 
    for (int counter=0; counter<svd.d_format.size(); counter++ ) {
@@ -1588,7 +1607,12 @@ ostream& operator<<(ostream& os, const SVData& svd)
          os << svd.d_format[ counter ].getGTRDAD();
       } else {
          os << svd.d_format[ counter ].getGTAD();
-      }
+     }
+     if (g_par.outputStrandCounts) {
+       // Minus means the mate is downstream, therefore this is the forward read.
+       // The output order is SAF:SAR
+       os << ":" << svd.d_format[ counter ].getReadDepthMinus() << ":" << svd.d_format[ counter ].getReadDepthPlus();
+     }
    }
 
    os << endl;
@@ -1727,6 +1751,10 @@ void getSampleNamesAndChromosomeNames(InputReader& pindelInput, set<string>& sam
        pindel024uOrLater = false;
        }*/
       int numberOfElementsPerSample = ( pindel024uOrLater ? 7 : 5 );
+      if (g_par.outputStrandCounts) {
+        numberOfElementsPerSample += 4;
+      }
+
       string newSampleName = fetchElement( lineStream, numberOfElementsPerSample );
       while (!lineStream.fail()) {
          if ( newSampleName != "" ) {
@@ -1798,6 +1826,8 @@ void convertIndelToSVdata( InputReader& pindelInput, map< string, int>& sampleMa
          refSupportAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str());
          }*/
       int totalRefSupport = max(refSupportAtStartOfEvent, refSupportAtEndOfEvent);
+      if (g_par.outputStrandCounts) {
+      }
       int numberItemsUntilNextSupport = ( pindel024uOrLater ? 2 : 2 );
       int samplePlusSupport = atoi( fetchElement( lineStream, numberItemsUntilNextSupport ).c_str());
       int sampleMinSupport = atoi( fetchElement( lineStream, numberItemsUntilNextSupport ).c_str()); // now at position 35, total +supports sample 1
@@ -1807,7 +1837,7 @@ void convertIndelToSVdata( InputReader& pindelInput, map< string, int>& sampleMa
             cout << "Error: could not find sample " << sampleName << endl;
          } else {
             int sampleID = sampleMap[ sampleName ];
-            svd.addGenotype( sampleID, samplePlusSupport , sampleMinSupport, totalRefSupport );
+            svd.addGenotype( sampleID, samplePlusSupport, sampleMinSupport, totalRefSupport );
          }
          /*if ( pindel024uOrLater ) {
           refSupportAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
@@ -1845,7 +1875,7 @@ void convertIndelToSVdata( InputReader& pindelInput, map< string, int>& sampleMa
    string ntInvAdded = "";
 
    // basically, there are two type of inversions:
-   //	a) The 'alternatively called small deletions' INV 2 NT 2 "TG"
+   // a) The 'alternatively called small deletions' INV 2 NT 2 "TG"
    // b) the regular inversions INV98 NT 0:60 "":"GCT"
    if ( svType.compare("INV") == 0 ) {
       if (ntAdded.find(":")==string::npos ) {
@@ -1915,33 +1945,63 @@ void convertIndelToSVdata( InputReader& pindelInput, map< string, int>& sampleMa
 
    if ( pindel024uOrLater ) {
       refSupportAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
+      string test;
+      if (g_par.outputStrandCounts) {
+        test = fetchElement( lineStream, 1 );
+        cerr << "skipped (1): " << test << endl;
+        test = fetchElement( lineStream, 1 );
+        cerr << "skipped (2): " << test << endl;
+      }
       refSupportAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
+      if (g_par.outputStrandCounts) {
+        test = fetchElement( lineStream, 1 );
+        cerr << "skipped (3): " << test << endl;
+        test = fetchElement( lineStream, 1 );
+        cerr << "skipped (4): " << test << endl;
+      }
       //std::cout << "outside refSupportAtStartOfEvent: " <<  sampleName << "\t" << refSupportAtStartOfEvent << "\t" << "refSupportAtEndOfEvent: " << refSupportAtEndOfEvent << std::endl;
    }
    int totalRefSupport = max(refSupportAtStartOfEvent, refSupportAtEndOfEvent);
+   cerr << "totalRefSupport: " << totalRefSupport << endl;
    //std::cout << "outside totalRefSupport: " << totalRefSupport << std::endl;
    int numberOfItemsUntilNextSupport = ( pindel024uOrLater ? 2 : 2 );
    int plusSupport = atoi( fetchElement( lineStream, numberOfItemsUntilNextSupport - 1 ).c_str()); // now at position 33, total +supports sample 1; for unique support 1->2
+   cerr << "plusSupport: " << plusSupport << endl;
    int minSupport = atoi( fetchElement( lineStream, numberOfItemsUntilNextSupport ).c_str()); // now at position 35, total +supports sample 1
+   cerr << "minSupport: " << minSupport << endl;
    int count=0;
    while (!lineStream.fail()) {
-      if (sampleMap.find( sampleName )==sampleMap.end() ) {
+      if (sampleMap.find( sampleName ) == sampleMap.end() ) {
          cout << "Error: could not find sample " << sampleName << endl;
       } else {
          int sampleID = sampleMap[ sampleName ];
-         //std::cout << "Adding " << sampleID << "\t" << plusSupport << "\t" << minSupport << "\t" << totalRefSupport << std::endl;
+         std::cout << "Adding " << sampleID << "\t" << plusSupport << "\t" << minSupport << "\t" << totalRefSupport << std::endl;
          svd.addGenotype( sampleID, plusSupport , minSupport, totalRefSupport );
       }
       sampleName = fetchElement( lineStream, 2); // for unique support, 2->1,
+      cerr << "-- sampleName: " << sampleName << endl;
       if ( pindel024uOrLater ) {
          refSupportAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
+         cerr << "-- refSupportAtStartOfEvent: " << refSupportAtStartOfEvent << endl;
+         string test;
+         if (g_par.outputStrandCounts) {
+           test = fetchElement( lineStream, 2 );
+         }
          refSupportAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
-         //std::cout << "inside refSupportAtStartOfEvent: " << sampleName << "\t" << refSupportAtStartOfEvent << "\t" << "refSupportAtEndOfEvent: " << refSupportAtEndOfEvent << std::endl;
+         cerr << "-- refSupportAtEndOfEvent: " << refSupportAtEndOfEvent << endl;
+         if (g_par.outputStrandCounts) {
+           test = fetchElement( lineStream, 2 );
+         }
+         std::cout << "inside refSupportAtStartOfEvent: " << sampleName << "\t" << refSupportAtStartOfEvent << "\t" << "refSupportAtEndOfEvent: " << refSupportAtEndOfEvent << std::endl;
+         cerr << "last number read: " << test << endl;
       }
+
       totalRefSupport = max(refSupportAtStartOfEvent, refSupportAtEndOfEvent);
       //std::cout << "insert totalRefSupport: " << totalRefSupport << std::endl;
       plusSupport = atoi( fetchElement( lineStream, numberOfItemsUntilNextSupport - 1 ).c_str()); // for unique support, 2->1
+      cerr << "-- plusSupport: " << plusSupport << endl;
       minSupport = atoi( fetchElement( lineStream, numberOfItemsUntilNextSupport ).c_str()); // now at position 33, total +supports sample 1
+      cerr << "-- minSupport: " << minSupport << endl;
    }
 }
 
@@ -2040,6 +2100,8 @@ void createParameters()
 
    parameters.push_back(
       new IntParameter( &g_par.minimumStrandSupport, "-ss", "--minimum_strand_support", "Only count a sample as supporting an event if at least one of its strands is supported by X reads (default 1)", false, 1 ) );
+   parameters.push_back(
+      new BoolParameter( &g_par.outputStrandCounts, "-sc", "--strand_counts", "Output forward and reverse ALT counts for each sample", false, false ) );
    parameters.push_back(
       new BoolParameter( &g_par.gatkCompatible, "-G", "--gatk_compatible", "calls genotypes which could either be homozygous or heterozygous not as ./1 but as 0/1, to ensure compatibility with GATK", false, false ) );
    parameters.push_back(
