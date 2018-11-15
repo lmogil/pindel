@@ -826,21 +826,27 @@ class Genotype
 public:
    Genotype();
    Genotype( const int readDepthPlus, const int readDepthMinus, const int totalRefSupport );
+   Genotype( const int readDepthPlus, const int readDepthMinus, const int totalRefSupport, const int refSupportPlus, const int refSupportMinus );
    void fuse( const Genotype& gt );
    void reset()
    {
       d_readDepthPlus=0;
       d_readDepthMinus=0;
       d_totalRefSupport = 0;
+      d_refSupportPlus = 0;
+      d_refSupportMinus = 0;
    }
+
    int getReadDepthPlus() const
    {
       return d_readDepthPlus;
    }
+
    int getReadDepthMinus() const
    {
       return d_readDepthMinus;
    }
+
    int getTotalReads() const
    {
       return ( d_readDepthPlus + d_readDepthMinus ) ;
@@ -855,6 +861,17 @@ public:
    {
       return d_totalRefSupport;
    }
+
+   int getRefSupportPlus() const
+   {
+      return d_refSupportPlus;
+   }
+
+   int getRefSupportMinus() const
+   {
+      return d_refSupportMinus;
+   }
+
    const string getGTRDAD() const;
    const string getGTAD() const;
 
@@ -862,13 +879,15 @@ private:
    int d_readDepthPlus;
    int d_readDepthMinus;
    int d_totalRefSupport;
+   int d_refSupportPlus;
+   int d_refSupportMinus;
    const string getGTold() const;
    const string getGTnew() const;
 };
 
 Genotype::Genotype()
 {
-   Genotype( 0, 0, 0 );
+   Genotype( 0, 0, 0, 0, 0 );
 }
 
 Genotype::Genotype( const int readDepthPlus, const int readDepthMinus, const int totalRefSupport )
@@ -876,6 +895,17 @@ Genotype::Genotype( const int readDepthPlus, const int readDepthMinus, const int
    d_readDepthPlus = readDepthPlus;
    d_readDepthMinus = readDepthMinus;
    d_totalRefSupport = totalRefSupport;
+   d_refSupportPlus = 0;
+   d_refSupportMinus = 0;
+}
+
+Genotype::Genotype( const int readDepthPlus, const int readDepthMinus, const int totalRefSupport, const int refSupportPlus, const int refSupportMinus )
+{
+   d_readDepthPlus = readDepthPlus;
+   d_readDepthMinus = readDepthMinus;
+   d_totalRefSupport = totalRefSupport;
+   d_refSupportPlus = refSupportPlus;
+   d_refSupportMinus = refSupportMinus;
 }
 
 void Genotype::fuse( const Genotype& gt )
@@ -883,6 +913,8 @@ void Genotype::fuse( const Genotype& gt )
    d_readDepthPlus += gt.d_readDepthPlus;
    d_readDepthMinus += gt.d_readDepthMinus;
    d_totalRefSupport = max(d_totalRefSupport, gt.d_totalRefSupport);
+   d_refSupportPlus = max(d_refSupportPlus, gt.d_refSupportPlus);
+   d_refSupportMinus = max(d_refSupportMinus, gt.d_refSupportMinus);
 }
 
 /** 'balanced' returns whether the a and b seem derived from a normal genomic binomial distribution of a and b, chance should be over 95% that the distribution is believable given heterozygosy (theoretically, as many
@@ -1102,6 +1134,18 @@ public:
       d_format[ sampleID ] = gt ;
    }
 
+   void addGenotype (
+     const int sampleID,
+     const int readDepthPlus,
+     const int readDepthMinus,
+     const int totalRefSupport,
+     const int refSupportPlus,
+     const int refSupportMinus
+   ) {
+      Genotype gt(readDepthPlus, readDepthMinus, totalRefSupport, refSupportPlus, refSupportMinus);
+      d_format[ sampleID ] = gt ;
+   }
+
    void setReplace( int replaceLength, int secondReplaceLen=-1 )
    {
       d_replaceLen = replaceLength;
@@ -1290,10 +1334,10 @@ SVData::SVData(const int genotypeTotal) // default settings
    d_nt="";
    d_nt2="";
    int numberOfSamples = genotypeTotal;
-   if (numberOfSamples<=0) {
-      numberOfSamples=1;
+   if (numberOfSamples <= 0) {
+      numberOfSamples = 1;
    }
-   d_format.resize( numberOfSamples, Genotype(0, 0, 0) );
+   d_format.resize( numberOfSamples, Genotype(0, 0, 0, 0, 0) );
 };
 
 
@@ -1610,8 +1654,9 @@ ostream& operator<<(ostream& os, const SVData& svd)
      }
      if (g_par.outputStrandCounts) {
        // Minus means the mate is downstream, therefore this is the forward read.
-       // The output order is SAF:SAR
-       os << ":" << svd.d_format[ counter ].getReadDepthMinus() << ":" << svd.d_format[ counter ].getReadDepthPlus();
+       // The output order is SAF:SAR:SRF:SRR
+       os << ":" << svd.d_format[ counter ].getReadDepthMinus() << ":" << svd.d_format[ counter ].getReadDepthPlus()
+         << ":" << svd.d_format[ counter ].getRefSupportMinus() << ":" << svd.d_format[ counter ].getRefSupportPlus();
      }
    }
 
@@ -1826,8 +1871,6 @@ void convertIndelToSVdata( InputReader& pindelInput, map< string, int>& sampleMa
          refSupportAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str());
          }*/
       int totalRefSupport = max(refSupportAtStartOfEvent, refSupportAtEndOfEvent);
-      if (g_par.outputStrandCounts) {
-      }
       int numberItemsUntilNextSupport = ( pindel024uOrLater ? 2 : 2 );
       int samplePlusSupport = atoi( fetchElement( lineStream, numberItemsUntilNextSupport ).c_str());
       int sampleMinSupport = atoi( fetchElement( lineStream, numberItemsUntilNextSupport ).c_str()); // now at position 35, total +supports sample 1
@@ -1941,67 +1984,66 @@ void convertIndelToSVdata( InputReader& pindelInput, map< string, int>& sampleMa
    }
    string sampleName = fetchElement( lineStream, 18);
    int refSupportAtStartOfEvent = 0;
+   int refSupportPlusAtStartOfEvent = 0;
+   int refSupportMinusAtStartOfEvent = 0;
    int refSupportAtEndOfEvent = 0;
+   int refSupportPlusAtEndOfEvent = 0;
+   int refSupportMinusAtEndOfEvent = 0;
 
    if ( pindel024uOrLater ) {
       refSupportAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
-      string test;
       if (g_par.outputStrandCounts) {
-        test = fetchElement( lineStream, 1 );
-        cerr << "skipped (1): " << test << endl;
-        test = fetchElement( lineStream, 1 );
-        cerr << "skipped (2): " << test << endl;
+        refSupportPlusAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
+        refSupportMinusAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
       }
       refSupportAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
       if (g_par.outputStrandCounts) {
-        test = fetchElement( lineStream, 1 );
-        cerr << "skipped (3): " << test << endl;
-        test = fetchElement( lineStream, 1 );
-        cerr << "skipped (4): " << test << endl;
+        refSupportPlusAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
+        refSupportMinusAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
       }
       //std::cout << "outside refSupportAtStartOfEvent: " <<  sampleName << "\t" << refSupportAtStartOfEvent << "\t" << "refSupportAtEndOfEvent: " << refSupportAtEndOfEvent << std::endl;
    }
    int totalRefSupport = max(refSupportAtStartOfEvent, refSupportAtEndOfEvent);
-   cerr << "totalRefSupport: " << totalRefSupport << endl;
+   int refSupportPlus = max(refSupportPlusAtStartOfEvent, refSupportPlusAtEndOfEvent);
+   int refSupportMinus = max(refSupportMinusAtStartOfEvent, refSupportMinusAtEndOfEvent);
    //std::cout << "outside totalRefSupport: " << totalRefSupport << std::endl;
    int numberOfItemsUntilNextSupport = ( pindel024uOrLater ? 2 : 2 );
    int plusSupport = atoi( fetchElement( lineStream, numberOfItemsUntilNextSupport - 1 ).c_str()); // now at position 33, total +supports sample 1; for unique support 1->2
-   cerr << "plusSupport: " << plusSupport << endl;
    int minSupport = atoi( fetchElement( lineStream, numberOfItemsUntilNextSupport ).c_str()); // now at position 35, total +supports sample 1
-   cerr << "minSupport: " << minSupport << endl;
    int count=0;
    while (!lineStream.fail()) {
       if (sampleMap.find( sampleName ) == sampleMap.end() ) {
          cout << "Error: could not find sample " << sampleName << endl;
       } else {
          int sampleID = sampleMap[ sampleName ];
-         std::cout << "Adding " << sampleID << "\t" << plusSupport << "\t" << minSupport << "\t" << totalRefSupport << std::endl;
-         svd.addGenotype( sampleID, plusSupport , minSupport, totalRefSupport );
+         if (g_par.outputStrandCounts) {
+           svd.addGenotype( sampleID, plusSupport, minSupport, totalRefSupport, refSupportPlus, refSupportMinus );
+         }
+         else {
+           svd.addGenotype( sampleID, plusSupport, minSupport, totalRefSupport );
+         }
       }
       sampleName = fetchElement( lineStream, 2); // for unique support, 2->1,
-      cerr << "-- sampleName: " << sampleName << endl;
       if ( pindel024uOrLater ) {
          refSupportAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
-         cerr << "-- refSupportAtStartOfEvent: " << refSupportAtStartOfEvent << endl;
-         string test;
          if (g_par.outputStrandCounts) {
-           test = fetchElement( lineStream, 2 );
+           refSupportPlusAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
+           refSupportMinusAtStartOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
          }
          refSupportAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
-         cerr << "-- refSupportAtEndOfEvent: " << refSupportAtEndOfEvent << endl;
          if (g_par.outputStrandCounts) {
-           test = fetchElement( lineStream, 2 );
+           refSupportPlusAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
+           refSupportMinusAtEndOfEvent = atoi( fetchElement( lineStream, 1 ).c_str() );
          }
-         std::cout << "inside refSupportAtStartOfEvent: " << sampleName << "\t" << refSupportAtStartOfEvent << "\t" << "refSupportAtEndOfEvent: " << refSupportAtEndOfEvent << std::endl;
-         cerr << "last number read: " << test << endl;
+         // std::cout << "inside refSupportAtStartOfEvent: " << sampleName << "\t" << refSupportAtStartOfEvent << "\t" << "refSupportAtEndOfEvent: " << refSupportAtEndOfEvent << std::endl;
       }
 
       totalRefSupport = max(refSupportAtStartOfEvent, refSupportAtEndOfEvent);
+      refSupportPlus = max(refSupportPlusAtStartOfEvent, refSupportPlusAtEndOfEvent);
+      refSupportMinus = max(refSupportMinusAtStartOfEvent, refSupportMinusAtEndOfEvent);
       //std::cout << "insert totalRefSupport: " << totalRefSupport << std::endl;
       plusSupport = atoi( fetchElement( lineStream, numberOfItemsUntilNextSupport - 1 ).c_str()); // for unique support, 2->1
-      cerr << "-- plusSupport: " << plusSupport << endl;
       minSupport = atoi( fetchElement( lineStream, numberOfItemsUntilNextSupport ).c_str()); // now at position 33, total +supports sample 1
-      cerr << "-- minSupport: " << minSupport << endl;
    }
 }
 
