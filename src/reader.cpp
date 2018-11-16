@@ -276,7 +276,7 @@ short ReadInRead (PindelReadReader & inf_ReadSeq, const std::string & FragName,
                   if (currentRead.MatchedD == Plus) {
                      currentRead.LeftMostPos = currentRead.UP_Close[currentRead.UP_Close.size() - 1].AbsLoc + 1 - currentRead.CloseEndLength;
                   } else {
-                     currentRead.LeftMostPos = currentRead.UP_Close[currentRead.UP_Close.size() - 1].AbsLoc + currentRead.CloseEndLength -                      											currentRead.getReadLength();
+                     currentRead.LeftMostPos = currentRead.UP_Close[currentRead.UP_Close.size() - 1].AbsLoc + currentRead.CloseEndLength -                                            currentRead.getReadLength();
                   }
                   // we may want to remove some of the LOG_DEBUG statements; these mainly increase code-reading time
                   LOG_DEBUG(*logStream << "Pushing back!" << std::endl);
@@ -292,9 +292,9 @@ short ReadInRead (PindelReadReader & inf_ReadSeq, const std::string & FragName,
                //else OneEndMappedReads.push_back(currentRead); // OneEndMappedReads
             }
             BufferReads.clear ();
-         }										// if buffer-reads threatens to overflow
-      }												// if the read is in the correct bin
-   }														// while loop over each read
+         }                    // if buffer-reads threatens to overflow
+      }                       // if the read is in the correct bin
+   }                            // while loop over each read
    LOG_INFO(*logStream << "last one: " << BufferReads.size () << " and UPCLOSE= " << UPCLOSE_COUNTER << std::endl);
    // the below can be fused with the above
    #pragma omp parallel default(shared)
@@ -368,7 +368,7 @@ bool ReadInBamReads_RP (const char *bam_path, const std::string & FragName,
    fp = sam_open (bam_path, "r");
    assert (fp);
    hts_idx_t *idx;
-   idx = sam_index_load (fp, bam_path);	// load BAM index
+   idx = sam_index_load (fp, bam_path); // load BAM index
    assert (idx);
    bam_hdr_t *header = sam_hdr_read (fp);
    assert (header);
@@ -429,7 +429,7 @@ bool ReadInBamReads_RP_Discovery (const char *bam_path,
    fp = sam_open (bam_path, "r");
    assert (fp);
    hts_idx_t *idx;
-   idx = sam_index_load (fp, bam_path);	// load BAM index
+   idx = sam_index_load (fp, bam_path); // load BAM index
    assert (idx);
    bam_hdr_t *header = sam_hdr_read (fp);
    assert (header);
@@ -461,12 +461,12 @@ bool ReadInBamReads_RP_Discovery (const char *bam_path,
    /*
    khint_t key;
    if (kh_size (data.read_to_map_qual) > 0) {
-   	for (key = kh_begin (data.read_to_map_qual); key != kh_end (data.read_to_map_qual); ++key) {
-   		if (kh_exist (data.read_to_map_qual, key)) {
-   			bam_destroy1 (kh_value (data.read_to_map_qual, key));
-   			free ((char *) kh_key (data.read_to_map_qual, key));
-   		}
-   	}
+    for (key = kh_begin (data.read_to_map_qual); key != kh_end (data.read_to_map_qual); ++key) {
+      if (kh_exist (data.read_to_map_qual, key)) {
+        bam_destroy1 (kh_value (data.read_to_map_qual, key));
+        free ((char *) kh_key (data.read_to_map_qual, key));
+      }
+    }
    }
    */
    kh_clear (read_name, data.read_to_map_qual);
@@ -496,7 +496,7 @@ bool ReadInBamReads_SR (const char *bam_path, const std::string & FragName,
    fp = sam_open (bam_path, "r");
    assert (fp);
    hts_idx_t *idx;
-   idx = sam_index_load (fp, bam_path);	// load BAM index
+   idx = sam_index_load (fp, bam_path); // load BAM index
    assert (idx);
    bam_hdr_t *header = sam_hdr_read (fp);
    assert (header);
@@ -569,27 +569,27 @@ bool isGoodAnchor( const flags_hit *read, const bam1_t * bamOfRead ) //bam_get_q
    //std::string seq;
    //GetReadSeq(bamOfRead, seq);
    //if (NR == "HWI-ST568:267:C1BD9ACXX:4:2101:18037:80445")
-   //	std::cout << "isGoodAnchor HWI-ST568:267:C1BD9ACXX:4:2101:18037:80445 " << seq << std::endl;
+   // std::cout << "isGoodAnchor HWI-ST568:267:C1BD9ACXX:4:2101:18037:80445 " << seq << std::endl;
 
 //return true;
 
 
    //int maxEdits = int (bamCore->l_qseq * userSettings->MaximumAllowedMismatchRate) + 1;
    /*
-   	const uint8_t *nm = bam_aux_get(bamOfRead, "NM");
-   	if (nm) {
-   		int32_t nm_value = bam_aux2i(nm);
-   		//std::cout << bam_get_qname(bamOfRead) << std::endl;
-   		std::string NR = bam_get_qname(bamOfRead);
-   		std::string seq;
-   		GetReadSeq(bamOfRead, seq);
-   		if (NR == "HWI-ST568:267:C1BD9ACXX:4:2101:18037:80445")
-   			std::cout << "isGoodAnchor " << nm_value << " " << userSettings->NM << " " << seq << std::endl;
-   		//std::cout << "isGoodAnchor " << (*nm) << " " << userSettings->NM << std::endl;
-   		if ((nm_value > maxEdits) || (nm_value > userSettings->NM)) {
-   			return false;
-   		}
-   	}
+    const uint8_t *nm = bam_aux_get(bamOfRead, "NM");
+    if (nm) {
+      int32_t nm_value = bam_aux2i(nm);
+      //std::cout << bam_get_qname(bamOfRead) << std::endl;
+      std::string NR = bam_get_qname(bamOfRead);
+      std::string seq;
+      GetReadSeq(bamOfRead, seq);
+      if (NR == "HWI-ST568:267:C1BD9ACXX:4:2101:18037:80445")
+        std::cout << "isGoodAnchor " << nm_value << " " << userSettings->NM << " " << seq << std::endl;
+      //std::cout << "isGoodAnchor " << (*nm) << " " << userSettings->NM << std::endl;
+      if ((nm_value > maxEdits) || (nm_value > userSettings->NM)) {
+        return false;
+      }
+    }
 
    */
    //unsigned int mappingQuality = bamCore->qual;
@@ -613,41 +613,41 @@ bool isGoodAnchor( const flags_hit *read, const bam1_t * bamOfRead ) //bam_get_q
 }
 
 /** 'isRefRead' ascertains whether this read likely matches to the reference instead
-	of to an alt allele. 
+  of to an alt allele.
    FIXME: if the SV is small (say a 1 or 2-base insertion), the read may be misclassified
-   as a reference allele while it actually is an alternative allele; so isRefRead, if 
+   as a reference allele while it actually is an alternative allele; so isRefRead, if
    we need accuracy, must take the proposed alt allele into account. */
 bool isRefRead ( const flags_hit *read, const bam1_t * bamOfRead )
 {
    const bam1_core_t *bamCore = &bamOfRead->core;
 
-	// Check whether the read is a normal, valid mapped read - it should be the main mapping 
-	// (so not a secondary mapping), not be a duplicate, and pass quality control.
+  // Check whether the read is a normal, valid mapped read - it should be the main mapping
+  // (so not a secondary mapping), not be a duplicate, and pass quality control.
    if (bamCore->flag & BAM_FSECONDARY || bamCore->flag & BAM_FQCFAIL || bamCore->flag & BAM_FDUP) {
       return false;
    }
 
-	// Now check if there are not too many mismatches with the reference ("NM" indicates
-	// the edit distance).
+  // Now check if there are not too many mismatches with the reference ("NM" indicates
+  // the edit distance).
    const uint8_t *nm = bam_aux_get(bamOfRead, "NM");
    if (nm) {
       int32_t nm_value = bam_aux2i(nm);
-	   int maxEdits = int (bamCore->l_qseq * userSettings->MaximumAllowedMismatchRate) + 1;
+     int maxEdits = int (bamCore->l_qseq * userSettings->MaximumAllowedMismatchRate) + 1;
       if ((nm_value > userSettings->NM) || (nm_value > maxEdits)) {
          return false;
       }
    }
 
-	// If we get here, the read does not differ too much from a reference read. But what
-	// if there is a 1 or 2 base insertion/deletion?
+  // If we get here, the read does not differ too much from a reference read. But what
+  // if there is a 1 or 2 base insertion/deletion?
    uint32_t *cigar_pointer = bam_get_cigar (bamOfRead);
    int cigarMismatchedBases = bam_cigar2mismatch (bamCore, cigar_pointer);
 
-	// this should take care of a 1 or 2 base indel with perfect matches for the rest
-	// note that things like _two_ one-base indels may still produce problems 
-	if (HasIndel( bamCore, cigar_pointer )) {
-		return false;
-	}
+  // this should take care of a 1 or 2 base indel with perfect matches for the rest
+  // note that things like _two_ one-base indels may still produce problems
+  if (HasIndel( bamCore, cigar_pointer )) {
+    return false;
+  }
    if (read->mapped && read->edits <= 2 && cigarMismatchedBases <= 2) {
       return true;
    } else {
@@ -693,7 +693,7 @@ bool isWeirdRead( const flags_hit *read, const bam1_t * bamOfRead )
     TODO Can you get the cigar string from the bam1_core_t argument? */
 unsigned int cigarToIndelCount(const bam1_core_t *bamCore, const uint32_t *cigar)
 {
-	unsigned int indelCount = 0;
+  unsigned int indelCount = 0;
    for (uint32_t cigarIndex = 0; cigarIndex < bamCore->n_cigar; cigarIndex++ ) {
       int cigarElement = cigar[ cigarIndex ] & BAM_CIGAR_MASK;
       if ( cigarElement == BAM_CINS || cigarElement == BAM_CDEL ) {
@@ -783,8 +783,8 @@ void AddUniquePoint(const bam1_t * unmapped_read, const bam1_core_t * c, const u
    }
 
    //if (SR_Read.Name == "@GAIIX-599_0004:5:118:12447:21053/2") {
-   //	std::cout << "IndelSize " << IndelSize << std::endl;
-   //	std::cout << SR_Read;
+   // std::cout << "IndelSize " << IndelSize << std::endl;
+   // std::cout << SR_Read;
    //}
 
 
@@ -892,8 +892,8 @@ void build_record_SR (const bam1_t * mapped_read, const bam1_t * unmapped_read, 
    if (Temp_One_Read.MatchedRelPos < 1) {
       Temp_One_Read.MatchedRelPos = 0;
    }
-   
-	data_for_bam->readBuffer->addRead(Temp_One_Read);
+
+  data_for_bam->readBuffer->addRead(Temp_One_Read);
    return;
 }
 
@@ -913,8 +913,9 @@ void build_record_RefRead (const bam1_t * mapped_read, const bam1_t * ref_read, 
    One_RefRead.Pos = Ref_read_core->pos; // mapped_core->pos;
    One_RefRead.Tag = (std::string) data_for_bam->Tag;
    One_RefRead.MQ = Ref_read_core->qual;
-   
-	bam_hdr_t *header = (bam_hdr_t *) data_for_bam->header;
+   One_RefRead.Flag = Ref_read_core->flag;
+
+  bam_hdr_t *header = (bam_hdr_t *) data_for_bam->header;
    One_RefRead.FragName = header->target_name[Ref_read_core->tid];
    One_RefRead.ReadLength = Ref_read_core->l_qseq;
 
@@ -1006,7 +1007,7 @@ void build_record_RP_Discovery (const bam1_t * r1, void *data)
 
    if (!(r1_core->flag & BAM_FUNMAP || r1_core->flag & BAM_FMUNMAP)) { // both reads are mapped.
       /*std::cout << "Read Insertsize=" << abs(r1_core->isize) << ", qseq=" << r1_core->l_qseq << " BAM ISize=" << data_for_bam->InsertSize
-      	<< "Total is " << r1_core->l_qseq *2 + 2 * data_for_bam->InsertSize << "\n";*/
+        << "Total is " << r1_core->l_qseq *2 + 2 * data_for_bam->InsertSize << "\n";*/
       //if ("read_10038" == read_name || "read_100478" ==  read_name) {
       //    std::cout << "########print " << read_name << " is on line 854." << std::endl;
       //    std::cout << r1_core->tid << " " << r1_core->mtid << " " << abs(r1_core->isize) << " "
@@ -1088,7 +1089,7 @@ void build_record_RP_Discovery (const bam1_t * r1, void *data)
          } else {
             data_for_bam->LeftReads_InterChr->push_back(Temp_One_Read);
          }
-         //	std::cout << "finished the procedure\n";
+         // std::cout << "finished the procedure\n";
       }
 
    }
@@ -1413,7 +1414,7 @@ void readInPindelReads(PindelReadReader &reader, const std::string& pindelFilena
 {
    int ReturnFromReadingReads = ReadInRead(  reader, currentWindow.getChromosome()->getName(),
                                 currentWindow.getChromosome()->getSeq(),
-//															currentState.CurrentChrSeq,
+//                              currentState.CurrentChrSeq,
                                 currentState.Reads_SR,
                                 currentWindow);
    if (ReturnFromReadingReads == 1) {
@@ -1448,7 +1449,7 @@ short get_SR_Reads(ControlState& currentState, const SearchWindow& currentWindow
                                      currentState.bams_to_parse[i].BamFile.c_str(),
                                      currentWindow.getChromosome()->getName(),
                                      &currentWindow.getChromosome()->getSeq(),
-                                     //	&currentState.CurrentChrSeq,
+                                     // &currentState.CurrentChrSeq,
                                      currentState.Reads_SR,
                                      currentState.OneEndMappedReads,
                                      currentState.RefSupportingReads,
@@ -1489,16 +1490,16 @@ short get_SR_Reads(ControlState& currentState, const SearchWindow& currentWindow
 
 short get_RP_Reads(ControlState& currentState, const SearchWindow& currentWindow )
 {
-	g_NumReadInWindow = 0; // #################
-	g_NumReadScanned = 0;
-	g_InWinPlus = 0; // #################
-	g_InWinMinus = 0; // #################
-	g_CloseMappedPlus = 0; // #################
-	g_CloseMappedMinus = 0; // #################
+  g_NumReadInWindow = 0; // #################
+  g_NumReadScanned = 0;
+  g_InWinPlus = 0; // #################
+  g_InWinMinus = 0; // #################
+  g_CloseMappedPlus = 0; // #################
+  g_CloseMappedMinus = 0; // #################
     std::cout << "getReads " << currentWindow.getChromosome()->getName() << " " << currentWindow.getChromosome()->getSeq().size() << std::endl;
     short ReturnFromReadingReads;
     //ReadBuffer readBuffer(BUFFER_SIZE, currentState.Reads_RP, currentWindow.getChromosome()->getSeq());
-	UserDefinedSettings* userSettings = UserDefinedSettings::Instance();
+  UserDefinedSettings* userSettings = UserDefinedSettings::Instance();
     if (userSettings->bamFilesAsInput()) {
         ReturnFromReadingReads = 0;
         for (unsigned int i = 0; i < currentState.bams_to_parse.size(); i++) {
@@ -1507,7 +1508,7 @@ short get_RP_Reads(ControlState& currentState, const SearchWindow& currentWindow
                                                        currentState.bams_to_parse[i].BamFile.c_str(),
                                                        currentWindow.getChromosome()->getName(),
                                                        &currentWindow.getChromosome()->getSeq(),
-                                                       //	&currentState.CurrentChrSeq,
+                                                       // &currentState.CurrentChrSeq,
                                                        currentState.Reads_RP,
                                                        currentState.bams_to_parse[i].InsertSize,
                                                        currentState.bams_to_parse[i].Tag,
@@ -1548,7 +1549,7 @@ void updateReadAfterCloseEndMapping( SPLIT_READ& Temp_One_Read )
       Temp_One_Read.LeftMostPos = Temp_One_Read.UP_Close[0].AbsLoc + 1 - Temp_One_Read.UP_Close[0].LengthStr;
       g_CloseMappedPlus++;
    } else {
-      Temp_One_Read.LeftMostPos = Temp_One_Read.UP_Close[0].AbsLoc +	Temp_One_Read.UP_Close[0].LengthStr - Temp_One_Read.getReadLength();
+      Temp_One_Read.LeftMostPos = Temp_One_Read.UP_Close[0].AbsLoc +  Temp_One_Read.UP_Close[0].LengthStr - Temp_One_Read.getReadLength();
       g_CloseMappedMinus++;
    }
 }

@@ -1292,6 +1292,8 @@ short UpdateRefReadCoverage(ControlState& currentState, const SearchWindow& curr
    RefCoveragePerPosition OnePos;
    for (unsigned SampleIndex = 0; SampleIndex < NumberOfSamples; SampleIndex++) {
       OnePos.RefCoveragePerSample.push_back(0);
+      OnePos.RefCoveragePerSampleF.push_back(0);
+      OnePos.RefCoveragePerSampleR.push_back(0);
    }
    for (unsigned index = 0; index < Length; index++) {
       g_RefCoverageRegion.push_back(OnePos);
@@ -1307,10 +1309,17 @@ short UpdateRefReadCoverage(ControlState& currentState, const SearchWindow& curr
          }
          unsigned SampleID = g_SampleName2Index.find(currentState.RefSupportingReads[readIndex].Tag)->second;
          unsigned PosStart = currentState.RefSupportingReads[readIndex].Pos - Start;
+         unsigned Flag = currentState.RefSupportingReads[readIndex].Flag;
          #pragma omp critical
          {
             for (unsigned posIndex = 1; posIndex < (unsigned)currentState.RefSupportingReads[readIndex].ReadLength - 1; posIndex++) {
                g_RefCoverageRegion[PosStart + posIndex].RefCoveragePerSample[SampleID]++;
+               if (Flag & 0x10) {
+                 g_RefCoverageRegion[PosStart + posIndex].RefCoveragePerSampleR[SampleID]++;
+               }
+               else {
+                 g_RefCoverageRegion[PosStart + posIndex].RefCoveragePerSampleF[SampleID]++;
+               }
             }
          }
       }//RefSupportingReads

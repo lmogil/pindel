@@ -57,6 +57,8 @@ struct RefCoveragePerPosition {
       //CoveragePerSample.clear();
    }
    std::vector <unsigned> RefCoveragePerSample;
+   std::vector <unsigned> RefCoveragePerSampleF;
+   std::vector <unsigned> RefCoveragePerSampleR;
 };
 
 extern std::vector <RefCoveragePerPosition> g_RefCoverageRegion;
@@ -203,11 +205,13 @@ struct REF_READ {
       FragName = "";
       Pos = 0;
       MQ = 0;
+      Flag = 0;
       ReadLength = 0;
    }
    std::string Tag;
    std::string FragName;
    unsigned Pos;
+   unsigned Flag;
    short MQ;
    short ReadLength;
 };
