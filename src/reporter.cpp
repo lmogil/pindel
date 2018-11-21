@@ -709,28 +709,41 @@ void OutputSIs (std::vector < SPLIT_READ > &SIs,
            NumU_SupSamples;
 
    std::vector <int> CoverageStart, CoverageEnd; //if (!(TDs[C_S].BPLeft + 2 >= g_RegionStart &&  TDs[C_S].BPRight + 2 < g_RegionEnd)) return;
+   std::vector <int> CoverageStartF, CoverageEndF;
+   std::vector <int> CoverageStartR, CoverageEndR;
    if (SIs[C_S].BPLeft + 2 >= g_RegionStart && SIs[C_S].BPLeft + 2 < g_RegionEnd) {
+      RefCoveragePerPosition ref_coverage = g_RefCoverageRegion[SIs[C_S].BPLeft + 2 - g_RegionStart];
       for (unsigned short i = 0; i < g_sampleNames.size (); i++) {
-         CoverageStart.push_back(g_RefCoverageRegion[SIs[C_S].BPLeft + 2 - g_RegionStart].RefCoveragePerSample[i]);
+         CoverageStart.push_back(ref_coverage.RefCoveragePerSample[i]);
+         CoverageStartF.push_back(ref_coverage.RefCoveragePerSampleF[i]);
+         CoverageStartR.push_back(ref_coverage.RefCoveragePerSampleR[i]);
       }
    } else {
       for (unsigned short i = 0; i < g_sampleNames.size (); i++) {
          CoverageStart.push_back(-1);
+         CoverageStartF.push_back(-1);
+         CoverageStartR.push_back(-1);
       }
    }
    if (SIs[C_S].BPRight > g_RegionStart && SIs[C_S].BPRight < g_RegionEnd) {
+     RefCoveragePerPosition ref_coverage = g_RefCoverageRegion[SIs[C_S].BPRight - g_RegionStart];
       for (unsigned short i = 0; i < g_sampleNames.size (); i++) {
-         CoverageEnd.push_back(g_RefCoverageRegion[SIs[C_S].BPRight - g_RegionStart].RefCoveragePerSample[i]);
+         CoverageEnd.push_back(ref_coverage.RefCoveragePerSample[i]);
+         CoverageEndF.push_back(ref_coverage.RefCoveragePerSampleF[i]);
+         CoverageEndR.push_back(ref_coverage.RefCoveragePerSampleR[i]);
       }
    } else {
       for (unsigned short i = 0; i < g_sampleNames.size (); i++) {
          CoverageEnd.push_back(-1);
+         CoverageStartF.push_back(-1);
+         CoverageStartR.push_back(-1);
       }
    }
 
    for (unsigned short i = 0; i < g_sampleNames.size (); i++)
       SIsOutf << "\t" << indexToSampleMap[i]
-              << " " << CoverageStart[i] << " " << CoverageEnd[i]
+              << " " << CoverageStart[i] << " " << CoverageStartF[i] << " " << CoverageStartR[i]
+              << " " << CoverageEnd[i] << " " << CoverageEndF[i] << " " << CoverageEndR[i]
               << " " << NumSupportPerTag[i].NumPlus
               << " " << NumSupportPerTag[i].NumUPlus
               << " " << NumSupportPerTag[i].NumMinus
@@ -833,28 +846,41 @@ void OutputDI (std::vector < SPLIT_READ > &DI,
                 NumU_SupSamples;
 
    std::vector <int> CoverageStart, CoverageEnd; //if (!(TDs[C_S].BPLeft + 2 >= g_RegionStart &&  TDs[C_S].BPRight + 2 < g_RegionEnd)) return;
+   std::vector <int> CoverageStartF, CoverageEndF;
+   std::vector <int> CoverageStartR, CoverageEndR;
    if (DI[C_S].BPLeft + 2 >= g_RegionStart && DI[C_S].BPLeft + 2 < g_RegionEnd) {
+      RefCoveragePerPosition ref_coverage = g_RefCoverageRegion[DI[C_S].BPLeft + 2 - g_RegionStart];
       for (unsigned short i = 0; i < g_sampleNames.size (); i++) {
-         CoverageStart.push_back(g_RefCoverageRegion[DI[C_S].BPLeft + 2 - g_RegionStart].RefCoveragePerSample[i]);
+         CoverageStart.push_back(ref_coverage.RefCoveragePerSample[i]);
+         CoverageStartF.push_back(ref_coverage.RefCoveragePerSampleF[i]);
+         CoverageStartR.push_back(ref_coverage.RefCoveragePerSampleR[i]);
       }
    } else {
       for (unsigned short i = 0; i < g_sampleNames.size (); i++) {
          CoverageStart.push_back(-1);
+         CoverageStartF.push_back(-1);
+         CoverageStartR.push_back(-1);
       }
    }
    if (DI[C_S].BPRight > g_RegionStart && DI[C_S].BPRight < g_RegionEnd) {
+      RefCoveragePerPosition ref_coverage = g_RefCoverageRegion[DI[C_S].BPRight - g_RegionStart];
       for (unsigned short i = 0; i < g_sampleNames.size (); i++) {
-         CoverageEnd.push_back(g_RefCoverageRegion[DI[C_S].BPRight - g_RegionStart].RefCoveragePerSample[i]);
+         CoverageEnd.push_back(ref_coverage.RefCoveragePerSample[i]);
+         CoverageEndF.push_back(ref_coverage.RefCoveragePerSampleF[i]);
+         CoverageEndR.push_back(ref_coverage.RefCoveragePerSampleR[i]);
       }
    } else {
       for (unsigned short i = 0; i < g_sampleNames.size (); i++) {
          CoverageEnd.push_back(-1);
+         CoverageStartF.push_back(-1);
+         CoverageStartR.push_back(-1);
       }
    }
 
    for (unsigned short i = 0; i < g_sampleNames.size (); i++)
       DeletionOutf << "\t" << indexToSampleMap[i]
-                   << " " << CoverageStart[i] << " " << CoverageEnd[i]
+                   << " " << CoverageStart[i] << " " << CoverageStartF[i] << " " << CoverageStartR[i]
+                   << " " << CoverageEnd[i] << " " << CoverageEndF[i] << " " << CoverageEndR[i]
                    << " " << NumSupportPerTag[i].NumPlus
                    << " " << NumSupportPerTag[i].NumUPlus
                    << " " << NumSupportPerTag[i].NumMinus
