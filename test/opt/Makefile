@@ -24,7 +24,7 @@ ifeq ($(wildcard $(TESTREFINDEX)),)
 endif
 
 test: hs_ref_chr5.fa hs_ref_chr5.fa.fai
-	mkdir -p result
+	@mkdir -p result
 	@./suite.bats
 
 remove-empties:
