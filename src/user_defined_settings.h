@@ -78,6 +78,7 @@ public:
       ReportCloseMappedRead = false;
       reportOnlyCloseMappedReads = false;
       reportInterchromosomalEvents = true;
+      reportStrandCounts = false;
       IndelCorrection = false;
       NormalSamples = false;
       userDefinedRegion = "";
@@ -129,6 +130,7 @@ public:
    bool ReportCloseMappedRead;
    bool reportOnlyCloseMappedReads;
    bool reportInterchromosomalEvents;
+   bool reportStrandCounts;
    bool IndelCorrection;
    bool NormalSamples;
    std::string userDefinedRegion;

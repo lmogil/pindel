@@ -1292,8 +1292,10 @@ short UpdateRefReadCoverage(ControlState& currentState, const SearchWindow& curr
    RefCoveragePerPosition OnePos;
    for (unsigned SampleIndex = 0; SampleIndex < NumberOfSamples; SampleIndex++) {
       OnePos.RefCoveragePerSample.push_back(0);
-      OnePos.RefCoveragePerSampleF.push_back(0);
-      OnePos.RefCoveragePerSampleR.push_back(0);
+      if (userSettings->reportStrandCounts) {
+        OnePos.RefCoveragePerSampleF.push_back(0);
+        OnePos.RefCoveragePerSampleR.push_back(0);
+      }
    }
    for (unsigned index = 0; index < Length; index++) {
       g_RefCoverageRegion.push_back(OnePos);
@@ -1314,11 +1316,13 @@ short UpdateRefReadCoverage(ControlState& currentState, const SearchWindow& curr
          {
             for (unsigned posIndex = 1; posIndex < (unsigned)currentState.RefSupportingReads[readIndex].ReadLength - 1; posIndex++) {
                g_RefCoverageRegion[PosStart + posIndex].RefCoveragePerSample[SampleID]++;
-               if (Flag & 0x10) {
-                 g_RefCoverageRegion[PosStart + posIndex].RefCoveragePerSampleR[SampleID]++;
-               }
-               else {
-                 g_RefCoverageRegion[PosStart + posIndex].RefCoveragePerSampleF[SampleID]++;
+               if (userSettings->reportStrandCounts) {
+                 if (Flag & 0x10) {
+                   g_RefCoverageRegion[PosStart + posIndex].RefCoveragePerSampleR[SampleID]++;
+                 }
+                 else {
+                   g_RefCoverageRegion[PosStart + posIndex].RefCoveragePerSampleF[SampleID]++;
+                 }
                }
             }
          }

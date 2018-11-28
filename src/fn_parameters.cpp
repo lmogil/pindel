@@ -167,6 +167,13 @@ void defineParameters(std::vector<Parameter *>& parameters)
 
    parameters.push_back(
       new BoolParameter(
+         &userSettings->reportStrandCounts,
+         "-sc",
+         "--report_strand_counts",
+         "Output forward and reverse REF and ALT counts for each sample", false, false ) );
+
+   parameters.push_back(
+      new BoolParameter(
          &userSettings->IndelCorrection,
          "-C",
          "--IndelCorrection",

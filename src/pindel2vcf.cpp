@@ -2143,7 +2143,7 @@ void createParameters()
    parameters.push_back(
       new IntParameter( &g_par.minimumStrandSupport, "-ss", "--minimum_strand_support", "Only count a sample as supporting an event if at least one of its strands is supported by X reads (default 1)", false, 1 ) );
    parameters.push_back(
-      new BoolParameter( &g_par.outputStrandCounts, "-sc", "--strand_counts", "Output forward and reverse ALT counts for each sample", false, false ) );
+      new BoolParameter( &g_par.outputStrandCounts, "-sc", "--strand_counts", "Output forward and reverse REF and ALT counts for each sample", false, false ) );
    parameters.push_back(
       new BoolParameter( &g_par.gatkCompatible, "-G", "--gatk_compatible", "calls genotypes which could either be homozygous or heterozygous not as ./1 but as 0/1, to ensure compatibility with GATK", false, false ) );
    parameters.push_back(
@@ -2223,7 +2223,6 @@ void printHelp()
    for (int parameterIndex=0; parameterIndex<parameters.size(); parameterIndex++ ) {
       parameters[ parameterIndex ]->describe();
    }
-   exit( EXIT_SUCCESS );
 }
 
 bool isRegularPindelInput()
