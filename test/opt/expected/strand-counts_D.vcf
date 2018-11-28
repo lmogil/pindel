@@ -1,0 +1,24 @@
+##fileformat=VCFv4.0
+##fileDate=20100101
+##source=pindel
+##reference=HUMAN_G1K_V2
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=HOMLEN,Number=1,Type=Integer,Description="Length of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=PF,Number=1,Type=Integer,Description="The number of samples carry the variant">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=NTLEN,Number=.,Type=Integer,Description="Number of bases inserted in place of deleted code">
+##FORMAT=<ID=PL,Number=3,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Reference depth, how many reads support the reference">
+##FORMAT=<ID=AD,Number=2,Type=Integer,Description="Allele depth, how many reads support this allele">
+##FORMAT=<ID=SRF,Number=1,Type=Integer,Description="Number of reference observations on the forward strand">
+##FORMAT=<ID=SRR,Number=1,Type=Integer,Description="Number of reference observations on the reverse strand">
+##FORMAT=<ID=SAF,Number=1,Type=Integer,Description="Number of alternate observations on the forward strand">
+##FORMAT=<ID=SAR,Number=1,Type=Integer,Description="Number of alternate observations on the reverse strand">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE1	SAMPLE2	SAMPLE3
+1	10000	.	ACTTAGCCTTAAACTCGCGGGAACATATACGAGCTGAAATTATTCGAATTGCTGTTCTGCCACTGAGGCGCAGCATTATTTGAGATCGTATAACTGCCAGT	A	.	PASS	END=10100;HOMLEN=0;SVLEN=-100;SVTYPE=DEL	GT:AD:SAF:SAR:SRF:SRR	1/1:4,45:25:20:2:2	1/1:0,48:28:20:0:0	1/1:4,50:24:26:2:2
+2	10000	.	TGTGGAAGCTGCGTGAGGCCGGCCTGGAGTAGGTAATAGCACGGAATGTATCTATGGCGCAGTGGTTCACGAGAGGCCAAGTCCAATGCCTGAGAGGTTGC	T	.	PASS	END=10100;HOMLEN=1;HOMSEQ=G;SVLEN=-100;SVTYPE=DEL	GT:AD:SAF:SAR:SRF:SRR	1/1:0,54:26:28:0:0	1/1:4,52:22:30:2:2	1/1:4,45:19:26:2:2
+3	10000	.	TATTAGCTTCTCCACCAGAGTAGCACCCACTTGTTGCAGACCCGCTACCAAACGCCATGAACTGAGCGGTGAAAGCTGTATTAACGCCCTCCACACTCTGA	T	.	PASS	END=10100;HOMLEN=0;SVLEN=-100;SVTYPE=DEL	GT:AD:SAF:SAR:SRF:SRR	1/1:0,48:22:26:0:0	1/1:0,49:27:22:0:0	1/1:4,50:28:22:2:2
+4	10000	.	ATGGGGCAGGCCCTCGACTTAGCTCTCAGAGTTACGTGGCATGGGTATCTGCCAATTGTCGCAGGCACAGGACAGAATTCGCGACTTACGGTTGCCACGAT	A	.	PASS	END=10100;HOMLEN=0;SVLEN=-100;SVTYPE=DEL	GT:AD:SAF:SAR:SRF:SRR	1/1:0,48:26:22:0:0	1/1:0,49:25:24:0:0	1/1:4,52:26:26:2:2

@@ -1,0 +1,24 @@
+##fileformat=VCFv4.0
+##fileDate=20100101
+##source=pindel
+##reference=HUMAN_G1K_V2
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=HOMLEN,Number=1,Type=Integer,Description="Length of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=PF,Number=1,Type=Integer,Description="The number of samples carry the variant">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=NTLEN,Number=.,Type=Integer,Description="Number of bases inserted in place of deleted code">
+##FORMAT=<ID=PL,Number=3,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Reference depth, how many reads support the reference">
+##FORMAT=<ID=AD,Number=2,Type=Integer,Description="Allele depth, how many reads support this allele">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Normal	Tumor
+5	233497	.	TCCTC	TTTTT	.	PASS	END=233501;HOMLEN=0;SVLEN=-4;SVTYPE=RPL;NTLEN=4	GT:AD	0/0:78,0	0/0:338,2
+5	233509	.	CA	C	.	PASS	END=233510;HOMLEN=5;HOMSEQ=AAAAA;SVLEN=-1;SVTYPE=DEL	GT:AD	0/0:94,0	0/0:415,2
+5	233587	.	TGCAGG	TTCATT	.	PASS	END=233592;HOMLEN=0;SVLEN=-5;SVTYPE=RPL;NTLEN=5	GT:AD	0/0:384,2	0/0:1127,2
+5	233587	.	TGCAGGCA	TTTTTTTT	.	PASS	END=233594;HOMLEN=0;SVLEN=-7;SVTYPE=RPL;NTLEN=7	GT:AD	0/0:396,6	0/0:1153,2
+5	233587	.	TGCAGGCATA	TTCTTTCTTT	.	PASS	END=233596;HOMLEN=0;SVLEN=-9;SVTYPE=RPL;NTLEN=9	GT:AD	0/0:399,0	0/0:1162,26
+5	233587	.	TGCAGGCATATA	TTTTTTTTTTTT	.	PASS	END=233598;HOMLEN=0;SVLEN=-11;SVTYPE=RPL;NTLEN=11	GT:AD	0/0:409,0	0/0:1170,7
+5	233587	.	TGCAGGCATATATG	TTTTTTTTTTTTTT	.	PASS	END=233600;HOMLEN=0;SVLEN=-13;SVTYPE=RPL;NTLEN=13	GT:AD	0/0:417,0	0/0:1183,2
+5	233589	.	CAGGCA	CTGTTT	.	PASS	END=233594;HOMLEN=0;SVLEN=-5;SVTYPE=RPL;NTLEN=5	GT:AD	0/0:396,0	0/0:1153,2

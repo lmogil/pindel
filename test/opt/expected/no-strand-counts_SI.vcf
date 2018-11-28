@@ -1,0 +1,20 @@
+##fileformat=VCFv4.0
+##fileDate=20100101
+##source=pindel
+##reference=HUMAN_G1K_V2
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=HOMLEN,Number=1,Type=Integer,Description="Length of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=PF,Number=1,Type=Integer,Description="The number of samples carry the variant">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=NTLEN,Number=.,Type=Integer,Description="Number of bases inserted in place of deleted code">
+##FORMAT=<ID=PL,Number=3,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Reference depth, how many reads support the reference">
+##FORMAT=<ID=AD,Number=2,Type=Integer,Description="Allele depth, how many reads support this allele">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE1	SAMPLE2	SAMPLE3
+1	19998	.	G	GGCTATGGGCA	.	PASS	END=19998;HOMLEN=2;HOMSEQ=GC;SVLEN=10;SVTYPE=INS	GT:AD	1/1:4,48	1/1:4,41	1/1:4,42
+2	20000	.	C	CGGTAGGCCTG	.	PASS	END=20000;HOMLEN=0;SVLEN=10;SVTYPE=INS	GT:AD	1/1:4,40	1/1:8,35	1/1:4,42
+3	20000	.	G	GCACAATACGC	.	PASS	END=20000;HOMLEN=6;HOMSEQ=GACAAT;SVLEN=10;SVTYPE=INS	GT:AD	1/1:8,42	1/1:4,46	1/1:4,45
+4	19999	.	G	GTTCGTTACTC	.	PASS	END=19999;HOMLEN=2;HOMSEQ=TT;SVLEN=10;SVTYPE=INS	GT:AD	1/1:4,39	1/1:0,42	1/1:4,44

@@ -1,0 +1,2 @@
+input/test-tumor.bam	250	Tumor
+input/test-normal.bam	250	Normal

@@ -1,0 +1,3 @@
+setup () {
+  export PATH=.:..:$PATH
+}
