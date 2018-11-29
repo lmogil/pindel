@@ -94,7 +94,7 @@ const int FIRST_SAMPLE_INDEX = 32; // index of first sample name
 
 using namespace std;
 
-string g_versionString = "0.6.3";
+string g_versionString = "0.6.3+";
 string g_programName = "pindel2vcf";
 
 bool g_normalBaseArray[256];
