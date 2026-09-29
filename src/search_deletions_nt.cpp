@@ -24,6 +24,135 @@
 #include "control_state.h"
 #include "logdef.h"
 
+#include <string>
+#include <vector>
+
+unsigned editDistance(const std::string& a, const std::string& b)
+{
+   const unsigned n = a.size();
+   const unsigned m = b.size();
+   std::vector<unsigned> prev(m + 1), cur(m + 1);
+   for (unsigned j = 0; j <= m; ++j) {
+      prev[j] = j;
+   }
+   for (unsigned i = 1; i <= n; ++i) {
+      cur[0] = i;
+      for (unsigned j = 1; j <= m; ++j) {
+         const unsigned cost = (a[i - 1] == b[j - 1]) ? 0u : 1u;
+         unsigned best = prev[j] + 1;
+         if (cur[j - 1] + 1 < best) {
+            best = cur[j - 1] + 1;
+         }
+         if (prev[j - 1] + cost < best) {
+            best = prev[j - 1] + cost;
+         }
+         cur[j] = best;
+      }
+      prev.swap(cur);
+   }
+   return prev[m];
+}
+
+/* A long anchor gap that still matches the read, apart from a few inserted
+   bases and scattered mismatches, is a short insertion. A mismatch at either
+   end must not keep the whole span as one replacement. */
+bool gapIsShortInsertion(const std::string& chromosome, const SPLIT_READ& read)
+{
+   if (read.IndelSize == 0 || read.NT_size <= read.IndelSize || read.NT_str.size() != read.NT_size) {
+      return false;
+   }
+   const unsigned extra = read.NT_size - read.IndelSize;
+   if (extra > 5) {
+      return false;
+   }
+   const unsigned start = (unsigned) read.Left + (unsigned) read.BP + 1;
+   if (start + read.IndelSize > chromosome.size()) {
+      return false;
+   }
+   const std::string refGap = chromosome.substr(start, read.IndelSize);
+   const unsigned allowed = extra + 2 + refGap.size() / 5;
+   return editDistance(refGap, read.NT_str) <= allowed;
+}
+
+/* Place `extra` read bases into the reference gap. The best match, and the
+   leftmost one on a tie, is where the short insertion sits. */
+bool locateInsertion(const std::string& refGap, const std::string& nt,
+                     unsigned extra, unsigned& refOff, unsigned& ntOff)
+{
+   if (extra == 0 || nt.size() != refGap.size() + extra) {
+      return false;
+   }
+   bool found = false;
+   unsigned bestScore = 0;
+   unsigned bestAt = 0;
+   for (unsigned insAt = 0; insAt + extra <= nt.size() && insAt <= refGap.size(); ++insAt) {
+      unsigned score = 0;
+      for (unsigned i = 0; i < refGap.size(); ++i) {
+         const unsigned j = (i < insAt) ? i : i + extra;
+         if (j < nt.size() && refGap[i] == nt[j]) {
+            ++score;
+         }
+      }
+      if (!found || score > bestScore) {
+         found = true;
+         bestScore = score;
+         bestAt = insAt;
+      }
+   }
+   if (!found || bestScore * 5 < refGap.size() * 4) {
+      return false;
+   }
+   refOff = bestAt;
+   ntOff = bestAt;
+   return true;
+}
+
+/* Point the anchors at the inserted base so the short-insertion search can
+   aggregate every read there, instead of keeping each mismatched span. */
+bool retargetShortInsertion(SPLIT_READ& read, const std::string& chromosome)
+{
+   const unsigned extra = read.NT_size - read.IndelSize;
+   const unsigned gapStart = (unsigned) read.Left + (unsigned) read.BP + 1;
+   if (gapStart + read.IndelSize > chromosome.size() || gapStart == 0) {
+      return false;
+   }
+   const std::string refGap = chromosome.substr(gapStart, read.IndelSize);
+   unsigned refOff = 0;
+   unsigned ntOff = 0;
+   if (!locateInsertion(refGap, read.NT_str, extra, refOff, ntOff)) {
+      return false;
+   }
+   const int leftLen = (int) read.BP + 1 + (int) ntOff;
+   const int rightLen = read.getReadLength() - leftLen - (int) extra;
+   if (leftLen < 1 || rightLen < 1 || leftLen > Max_short || rightLen > Max_short) {
+      return false;
+   }
+   const unsigned leftAbs = gapStart + refOff - 1;
+   const unsigned rightAbs = leftAbs + 1;
+   if (read.MatchedD == Plus) {
+      const UniquePoint oldClose = read.UP_Close[read.UP_Close.size() - 1];
+      const UniquePoint oldFar = read.UP_Far[read.UP_Far.size() - 1];
+      read.UP_Close.clear();
+      read.UP_Far.clear();
+      read.UP_Close.push_back(UniquePoint(oldClose.chromosome_p, (short) leftLen, leftAbs,
+                                           oldClose.Direction, oldClose.Strand, 0));
+      read.UP_Far.push_back(UniquePoint(oldFar.chromosome_p, (short) rightLen, rightAbs,
+                                         oldFar.Direction, oldFar.Strand, 0));
+   } else if (read.MatchedD == Minus) {
+      const UniquePoint oldClose = read.UP_Close[read.UP_Close.size() - 1];
+      const UniquePoint oldFar = read.UP_Far[read.UP_Far.size() - 1];
+      read.UP_Close.clear();
+      read.UP_Far.clear();
+      read.UP_Far.push_back(UniquePoint(oldFar.chromosome_p, (short) leftLen, leftAbs,
+                                         oldFar.Direction, oldFar.Strand, 0));
+      read.UP_Close.push_back(UniquePoint(oldClose.chromosome_p, (short) rightLen, rightAbs,
+                                           oldClose.Direction, oldClose.Strand, 0));
+   } else {
+      return false;
+   }
+   return true;
+}
+
 int searchIndels(ControlState& currentState, unsigned NumBoxes, const SearchWindow& window )
 {
 
@@ -36,6 +165,7 @@ int searchIndels(ControlState& currentState, unsigned NumBoxes, const SearchWind
    std::vector<unsigned> DI[NumBoxes];
    unsigned TempBoxIndex;
    LOG_INFO(*logStream << "Searching deletion-insertions ... " << std::endl);
+   const std::string& chromosomeSeq = window.getChromosome()->getSeq();
 
    //UserDefinedSettings *userSettings = UserDefinedSettings::Instance();
 
@@ -68,6 +198,10 @@ int searchIndels(ControlState& currentState, unsigned NumBoxes, const SearchWind
 
                currentRead.BPLeft = currentRead.UP_Close[CloseIndex].AbsLoc - g_SpacerBeforeAfter;
                currentRead.BPRight = currentRead.UP_Far[FarIndex].AbsLoc - g_SpacerBeforeAfter;
+               if (gapIsShortInsertion(chromosomeSeq, currentRead)) {
+                  retargetShortInsertion(currentRead, chromosomeSeq);
+                  continue;
+               }
 
                if (1) {
 
@@ -103,6 +237,10 @@ int searchIndels(ControlState& currentState, unsigned NumBoxes, const SearchWind
                currentRead.IndelSize = (currentRead.Right - currentRead.Left) - currentRead.getReadLengthMinus() + currentRead.NT_size;
                currentRead.BPLeft = currentRead.UP_Far[FarIndex].AbsLoc - g_SpacerBeforeAfter;
                currentRead.BPRight = currentRead.UP_Close[CloseIndex].AbsLoc - g_SpacerBeforeAfter;
+               if (gapIsShortInsertion(chromosomeSeq, currentRead)) {
+                  retargetShortInsertion(currentRead, chromosomeSeq);
+                  continue;
+               }
                {
                   if ( 1 ) {
 

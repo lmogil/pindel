@@ -2518,15 +2518,31 @@ void SortOutputRest (ControlState& currentState, const std::string & CurrentChr,
    *logStream << "Mining, Sorting and output BP results: " << (unsigned int) difftime(Time_BP_E, Time_BP_S) << " seconds." << std::endl << std::endl;
 }
 
+/* Bases sitting in the gap after the breakpoint slide. NT_str is the sequence
+   from where the anchors first met, which stays behind when the call slides
+   along a homopolymer. Mismatches outside this gap are not part of the vote. */
+std::string GapInsertedStr(const SPLIT_READ& read)
+{
+   const std::string seq = (read.MatchedD == Minus)
+                            ? read.getUnmatchedSeq()
+                            : ReverseComplement(read.getUnmatchedSeq());
+   const unsigned start = (unsigned) read.BP + 1;
+   if (read.IndelSize == 0 || start + read.IndelSize > seq.size()) {
+      return read.NT_str;
+   }
+   return seq.substr(start, read.IndelSize);
+}
+
 std::string GetConsensusInsertedStr(const std::vector <SPLIT_READ> & Reads, const int & StartIndex, const int & EndIndex)
 {
    // InsertedStr
    std::map<std::string,int> NT_str_2_count;
    std::map<std::string,int>::iterator it;
    for (int i = StartIndex; i <= EndIndex; i++) {
-      it = NT_str_2_count.find(Reads[i].NT_str);
+      const std::string gap = GapInsertedStr(Reads[i]);
+      it = NT_str_2_count.find(gap);
       if (it == NT_str_2_count.end()) {
-         NT_str_2_count[Reads[i].NT_str] = 1;
+         NT_str_2_count[gap] = 1;
       } else {
          it->second++;
       }
